@@ -1,0 +1,27 @@
+name: Java CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Build and test every Maven project in the repo
+        run: |
+          set -e
+          poms=$(find . -name pom.xml -not -path "*/target/*" -not -path "*/node_modules/*")
+          if [ -z "$poms" ]; then echo "No Maven projects yet"; exit 0; fi
+          for pom in $poms; do
+            echo "::group::$pom"
+            mvn -B -q verify -f "$pom"
+            echo "::endgroup::"
+          done
